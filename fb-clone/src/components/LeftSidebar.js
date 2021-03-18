@@ -8,13 +8,14 @@ import ChatIcon from '@material-ui/icons/Chat';
 import StorefrontIcon from '@material-ui/icons/Storefront';
 import VideoLibraryIcon from '@material-ui/icons/VideoLibrary';
 import ExpandMoreOutlinedIcon from '@material-ui/icons/ExpandMoreOutlined';
+import { useStateValue } from './StateProvider';
 
 const LeftSidebar = () => {
-	const dp =
-		'https://www.google.com/url?sa=i&url=https%3A%2F%2Fdepositphotos.com%2Fvector-images%2Fprofile-placeholder.html&psig=AOvVaw1yyr0rt0mNSU-iXim_iEmT&ust=1615750225379000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCJD68-qAru8CFQAAAAAdAAAAABAD';
+	const [{ user }, dispatch] = useStateValue();
+
 	return (
 		<div className='sidebar'>
-			<SidebarRow src={dp} title='Username' />
+			<SidebarRow src={user.photoURL} title={user.displayName} />
 			<SidebarRow
 				Icon={LocalHospitalIcon}
 				title='COVID-19 Information Center'

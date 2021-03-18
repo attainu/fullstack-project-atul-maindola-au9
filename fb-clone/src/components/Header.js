@@ -11,8 +11,10 @@ import NotificationActiveIcon from '@material-ui/icons/NotificationsActive';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 import './Header.css';
+import { useStateValue } from './StateProvider';
 
 const Header = () => {
+	const [{ user }, dispatch] = useStateValue();
 	return (
 		<div className='header'>
 			<div className='header_left'>
@@ -43,8 +45,8 @@ const Header = () => {
 
 			<div className='header_right'>
 				<div className='header_info'>
-					<Avatar />
-					<h4>Atul</h4>
+					<Avatar src={user.photoURL} />
+					<h4>{user.displayName}</h4>
 				</div>
 				<IconButton>
 					<AddIcon />

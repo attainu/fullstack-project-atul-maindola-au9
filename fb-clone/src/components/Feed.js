@@ -1,6 +1,7 @@
 import React from 'react';
 import './Feed.css';
 import MessageSender from './MessageSender';
+import Post from './Post';
 import StoryReel from './StoryReel';
 
 const Feed = () => {
@@ -8,6 +9,13 @@ const Feed = () => {
 		<div className='feed'>
 			<StoryReel />
 			<MessageSender />
+			<Post
+				profilePic=''
+				message='hello FB!!'
+				timestamp='time'
+				imgName='randomImage'
+				username='Atul/Saurab'
+			/>
 		</div>
 	);
 };
