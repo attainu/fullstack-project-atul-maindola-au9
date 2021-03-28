@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
@@ -7,6 +7,8 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import { UserContext } from '../App';
+import M from 'materialize-css';
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
@@ -26,6 +28,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const SignIn = () => {
+	const { state, dispatch } = useContext(UserContext);
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const history = useHistory();
@@ -48,10 +51,21 @@ const SignIn = () => {
 				return res.json();
 			})
 			.then((data) => {
-				console.log(
-					data.error ? data.error : ('user created>>>', data)
-				);
-				history.push('/home');
+				if (data.error) {
+					M.toast({
+						html: 'Sign In Failed',
+						classes: 'rounded #d32f2f red darken-2',
+					});
+				} else {
+					M.toast({
+						html: 'Sign In Successful',
+						classes: 'rounded #7cb342 light-green darken-1',
+					});
+					localStorage.setItem('jwt', data.token);
+					localStorage.setItem('user', JSON.stringify(data.user));
+					dispatch({ type: 'USER', payload: data.user });
+					history.push('/home');
+				}
 			})
 			.catch((err) => console.log(err));
 	};

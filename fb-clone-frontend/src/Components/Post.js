@@ -1,19 +1,27 @@
 import { Avatar } from '@material-ui/core';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import './Post.css';
 import ThumbUpIcon from '@material-ui/icons/ThumbUp';
 import ChatBubbleOutlineIcon from '@material-ui/icons/ChatBubbleOutline';
 import NearMeIcon from '@material-ui/icons/NearMe';
 import ExpandMoreOutlined from '@material-ui/icons/ExpandMoreOutlined';
 import AccountCircleIclon from '@material-ui/icons/AccountCircle';
+import { UserContext } from '../App';
 
-const Post = ({ input, imgName, base64string, user, avatar, timestamp }) => {
+const Post = ({ input, imgName, imgURL, timestamp, username }) => {
+	const { state, dispatch } = useContext(UserContext);
+
 	return (
 		<div className='post'>
 			<div className='post__top'>
-				<Avatar src={avatar} className='post__avatar' />
+				<Avatar
+					src={
+						'https://cdn4.iconfinder.com/data/icons/small-n-flat/24/user-alt-512.png'
+					}
+					className='post__avatar'
+				/>
 				<div className='post__topInfo'>
-					<h3>{user}</h3>
+					<h3>{username}</h3>
 					<p>{new Date(parseInt(timestamp)).toUTCString()}</p>
 				</div>
 			</div>
@@ -23,7 +31,7 @@ const Post = ({ input, imgName, base64string, user, avatar, timestamp }) => {
 
 			{imgName ? (
 				<div className='post__image'>
-					<img src={base64string} />
+					<img src={imgURL} />
 				</div>
 			) : (
 				console.log('DEBUG >>> no image here')

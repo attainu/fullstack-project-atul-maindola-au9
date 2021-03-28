@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { ObjectId } = mongoose.Schema.Types;
 
 const postSchema = new mongoose.Schema({
 	input: {
@@ -10,19 +11,14 @@ const postSchema = new mongoose.Schema({
 		type: String,
 		trim: true,
 	},
-	base64string: {
-		type: String,
-		trim: true,
-	},
-	user: {
-		type: String,
-		trim: true,
-	},
-	avatar: {
+	imgURL: {
 		type: String,
 		trim: true,
 	},
 	timestamp: {
+		type: String,
+	},
+	username: {
 		type: String,
 	},
 });

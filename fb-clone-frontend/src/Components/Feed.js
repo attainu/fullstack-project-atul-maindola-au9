@@ -3,7 +3,7 @@ import './Feed.css';
 import MessageSender from './MessageSender';
 import Post from './Post';
 import StoryReel from './StoryReel';
-import axios from '../axios';
+import axios from 'axios';
 import Pusher from 'pusher-js';
 
 const pusher = new Pusher('c8fd52786f7ddd6cd929', {
@@ -43,8 +43,8 @@ const Feed = () => {
 					input={entry.input}
 					timestamp={entry.timestamp}
 					imgName={entry.imgName}
-					user={entry.user}
-					base64string={entry.base64string}
+					username={entry.username}
+					imgURL={entry.imgURL}
 				/>
 			))}
 		</div>

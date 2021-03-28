@@ -1,16 +1,22 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const requireLogin = require('../middleware/requireLogin');
 const router = express.Router();
+const PostDb = require('../models/postSchema');
 
 router.post('/post', (req, res) => {
-	const post = new PostDb(req.body);
-
-	console.log('>>>>>>>>>>', req.body);
-	res.send(req.body);
-
+	const { input, imgName, imgURL, timestamp, username } = req.body;
+	const post = new PostDb({
+		input,
+		imgName,
+		imgURL,
+		timestamp,
+		username,
+	});
+	console.log(req.body, post);
 	post.save()
-		.then(() => {
-			res.status(201);
+		.then((result) => {
+			res.status(201).json({ post: result });
 		})
 		.catch((err) => {
 			res.status(500);

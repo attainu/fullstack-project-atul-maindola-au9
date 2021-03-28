@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -7,12 +7,21 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import M from 'materialize-css';
+import { Avatar, Input } from '@material-ui/core';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import IconButton from '@material-ui/core/IconButton';
+import PhotoCamera from '@material-ui/icons/PhotoCamera';
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
 		display: 'flex',
 		flexDirection: 'column',
 		alignItems: 'center',
+	},
+
+	input: {
+		display: 'none',
 	},
 
 	form: {
@@ -25,6 +34,7 @@ const useStyles = makeStyles((theme) => ({
 	footNote: {
 		marginBottom: theme.spacing(2),
 	},
+	button: { width: '100%' },
 }));
 
 const SignUp = () => {
@@ -32,32 +42,89 @@ const SignUp = () => {
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const [cpassword, setCpassword] = useState('');
+	const [image, setImage] = useState('');
+	const [imgURL, setImgURL] = useState('');
 
 	const classes = useStyles();
 
-	const PostData = (e) => {
-		e.preventDefault();
+	useEffect(() => {
+		if (imgURL) {
+			uploadData();
+		}
+	}, [imgURL]);
 
+	const uploadData = () => {
+		let signUpData = {};
+
+		if (image) {
+			signUpData = {
+				username: username,
+				password: password,
+				cpassword: cpassword,
+				image: imgURL,
+			};
+			console.log('>>>>>', signUpData);
+		} else {
+			return (signUpData = {
+				username: username,
+				password: password,
+				cpassword: cpassword,
+				imgURL:
+					'https://i.pinimg.com/originals/0c/3b/3a/0c3b3adb1a7530892e55ef36d3be6cb8.png',
+			});
+		}
 		fetch('/signup', {
 			method: 'post',
 			headers: {
 				// 'Access-Control-Allow-Origin': 'http://localhost:3000',
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({
-				username,
-				password,
-				cpassword,
-			}),
+			body: JSON.stringify(signUpData),
 		})
 			.then((res) => {
 				return res.json();
 			})
 			.then((data) => {
-				console.log(data.error ? data.error : data);
-				history.push('/');
+				if (data.error) {
+					M.toast({
+						html: data.error,
+						classes: 'rounded #d32f2f red darken-2',
+					});
+				} else {
+					M.toast({
+						html: data.message,
+						classes: 'rounded #7cb342 light-green darken-1',
+					});
+					history.push('/');
+				}
 			})
 			.catch((err) => console.log(err));
+	};
+
+	const uploadPic = () => {
+		if (image) {
+			const data = new FormData();
+			data.append('file', image);
+			data.append('upload_preset', 'fb-clone');
+			data.append('cloud_name', 'dkujunhej');
+
+			fetch('https://api.cloudinary.com/v1_1/dkujunhej/image/upload', {
+				method: 'POST',
+				body: data,
+			})
+				.then((res) => res.json())
+				.then((data) => setImgURL(data.url))
+				.catch((err) => console.log(err));
+		}
+	};
+
+	const PostData = (e) => {
+		e.preventDefault();
+		if (image) {
+			uploadPic();
+		} else {
+			uploadData();
+		}
 	};
 
 	return (
@@ -67,6 +134,7 @@ const SignUp = () => {
 				<Typography component='h1' variant='h5'>
 					Sign up
 				</Typography>
+				<Avatar src={image} />
 				<form onSubmit={PostData} className={classes.form} noValidate>
 					<Grid container spacing={2}>
 						<Grid item xs={12}>
@@ -77,10 +145,40 @@ const SignUp = () => {
 								required
 								fullWidth
 								id='username'
-								label=' Username'
+								label=' USERNAME'
 								name='username'
 								autoComplete='username'
 							/>
+						</Grid>
+						<Grid item xs={12}>
+							(
+							<div className={classes.root}>
+								<input
+									accept='image/*'
+									onChange={(e) =>
+										console.log(e.target.files[0])
+									}
+									className={classes.input}
+									id='contained-button-file'
+									multiple
+									type='file'
+								/>
+								<label htmlFor='contained-button-file'>
+									<Button
+										startIcon={<CloudUploadIcon />}
+										style={{
+											color: 'grey',
+											height: '55px',
+											justifyContent: 'left',
+										}}
+										className={classes.button}
+										variant='outlined'
+										component='span'
+									>
+										Choose Profile Picture
+									</Button>
+								</label>
+							</div>
 						</Grid>
 						<Grid item xs={12}>
 							<TextField
@@ -90,7 +188,7 @@ const SignUp = () => {
 								required
 								fullWidth
 								name='password'
-								label='Password'
+								label='PASSWORD'
 								type='password'
 								id='password'
 								autoComplete='current-password'
@@ -104,7 +202,7 @@ const SignUp = () => {
 								required
 								fullWidth
 								name='confirmpassword'
-								label='Confirm Password'
+								label='CONFIRM PASSWORD'
 								type='text'
 								id='confirmpassword'
 								autoComplete='current-confirmpassword'
@@ -118,7 +216,6 @@ const SignUp = () => {
 						variant='contained'
 						color='primary'
 						className={classes.submit}
-						// onClick={() => PostData()}
 					>
 						Sign Up
 					</Button>

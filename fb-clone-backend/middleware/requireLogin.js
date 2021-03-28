@@ -17,7 +17,7 @@ module.exports = (req, res, next) => {
 		const { _id } = payload;
 		User.findOne(_id).then((userdata) => {
 			req.user = userdata;
+			next();
 		});
-		next();
 	});
 };

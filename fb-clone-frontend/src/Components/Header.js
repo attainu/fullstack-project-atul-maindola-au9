@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import './Header.css';
 import SearchIcon from '@material-ui/icons/Search';
 import HomeIcon from '@material-ui/icons/Home';
@@ -11,10 +11,10 @@ import AddIcon from '@material-ui/icons/Add';
 import ForumIcon from '@material-ui/icons/Forum';
 import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import { useStateValue } from '../StateProvider';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router';
+import { UserContext } from '../App';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -25,9 +25,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Header = () => {
+	const { state, dispatch } = useContext(UserContext);
 	const history = useHistory();
 	const classes = useStyles();
-	const [{ user }, dispatch] = useStateValue();
 	return (
 		<div className='header'>
 			<div className='header__left'>
@@ -62,8 +62,8 @@ const Header = () => {
 
 			<div className='header__right'>
 				<div className='header__info'>
-					<Avatar src={user.photoURL} />
-					<h4>{user.displayName}</h4>
+					<Avatar src={state.image} />
+					<h4>{state.username}</h4>
 				</div>
 
 				<IconButton>
@@ -81,7 +81,11 @@ const Header = () => {
 				<div className={classes.root}>
 					<Button
 						variant='contained'
-						onClick={() => history.push('/')}
+						onClick={() => {
+							localStorage.clear();
+							dispatch({ type: 'CLEAR' });
+							history.push('/');
+						}}
 						size='small'
 						color='secondary'
 						style={{ background: 'maroon' }}

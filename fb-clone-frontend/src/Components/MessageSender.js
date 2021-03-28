@@ -1,82 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './MessageSender.css';
 import { Avatar, Input } from '@material-ui/core';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import PhotoLibraryIcon from '@material-ui/icons/PhotoLibrary';
 import InsertEmoticonIcon from '@material-ui/icons/InsertEmoticon';
-import { useStateValue } from '../StateProvider';
-import axios from '../axios';
+import { UserContext } from '../App';
 
 const MessageSender = () => {
+	const { state, dispatch } = useContext(UserContext);
 	const [input, setInput] = useState('');
-	const [{ user }, dispatch] = useStateValue();
 	const [image, setImage] = useState();
-	const [fileBase64String, setFileBase64String] = useState('');
+	const [imgURL, setImgURL] = useState('');
+
+	useEffect(() => {
+		if (imgURL) {
+			uploadPost();
+		}
+	}, [imgURL]);
 
 	const handleChange = (e) => {
-		setImage(e.target.files);
+		setImage(e.target.files[0]);
 	};
 
-	const encodeFileBase64 = (img) => {
-		const reader = new FileReader();
-		if (img) {
-			reader.readAsDataURL(img[0]);
-			reader.onload = () => {
-				const Base64 = reader.result;
-				setFileBase64String(Base64);
-			};
-			reader.onerror = (error) => {
-				console.log('error>>>>', error);
-			};
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		console.log(state);
+		if (image) {
+			uploadPic();
+		} else {
+			uploadPost();
 		}
 	};
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		let postData = {};
+	const uploadPic = () => {
+		const data = new FormData();
+		data.append('file', image);
+		data.append('upload_preset', 'fb-clone');
+		data.append('cloud_name', 'dkujunhej');
 
+		fetch('https://api.cloudinary.com/v1_1/dkujunhej/image/upload', {
+			method: 'POST',
+			body: data,
+		})
+			.then((res) => res.json())
+			.then((data) => setImgURL(data.url))
+			.catch((err) => console.log(err));
+	};
+	const uploadPost = () => {
+		let postData = {};
 		if (image) {
 			postData = {
 				input: input,
-				imgName: image[0].name,
-				base64string: fileBase64String,
-				user: user.displayName,
-				avatar: user.photoURL,
+				imgName: image.name,
+				imgURL: imgURL,
 				timestamp: Date.now(),
+				username: state.username,
 			};
 			console.log('>>>>>', postData);
 		} else {
 			postData = {
 				input: input,
 				imgName: '',
-				base64string: '',
-				user: user.displayName,
-				avatar: user.photoURL,
+				imgURL: '',
 				timestamp: Date.now(),
+				username: state.username,
 			};
 		}
 
-		axios
-			.post('/post', postData, {
-				headers: {
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-					'Accept-Language': 'en-US,en;q=0.8',
-					'Access-Control-Allow-Origin': '*',
-				},
+		fetch('/post', {
+			method: 'POST',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				'Accept-Language': 'en-US,en;q=0.8',
+				// 'Access-Control-Allow-Origin': '*',
+			},
+			body: JSON.stringify(postData),
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				console.log('data getting stored in post data>>>', data);
 			})
-			.then((res) => {
-				console.log('data getting stored in post data>>>', res.data);
-			});
+			.catch((err) => console.log(err));
 		setInput('');
 		setImage(null);
-		setFileBase64String('');
+		setImgURL('');
 	};
-
 	return (
 		<div className='messageSender'>
 			<div className='messageSender__top'>
-				<Avatar src={user.photoURL} />
 				<form>
 					<input
 						type='text'
@@ -88,7 +100,7 @@ const MessageSender = () => {
 					<Input
 						type='file'
 						className='messageSender__fileSelector'
-						value={encodeFileBase64(image)}
+						// value={imageDetails()}
 						onChange={handleChange}
 					/>
 					<button onClick={handleSubmit} type='submit'>
