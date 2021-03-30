@@ -1,0 +1,148 @@
+//imports
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import multer from 'multer';
+import GridFsStorage from 'multer-gridfs-storage';
+import Grid from 'gridfs-stream';
+// import bodyParser from 'body-parser';
+import path from 'path';
+import Pusher from 'pusher';
+// import { MongoClient } from 'mongodb';
+import mongoPosts from './mongoPost.js';
+
+Grid.mongo = mongoose.mongo;
+
+//app config
+const app = express();
+const port = process.env.PORT || 9000;
+
+//middlewares
+app.use(express.json()); //Used to parse JSON bodies
+app.use(express.urlencoded({ extended: true })); //Parse URL-encoded bodies
+app.use(cors());
+//db config
+
+const mongoURI =
+	'mongodb+srv://admin:atul1210@cluster0.avlrm.mongodb.net/fbdb?retryWrites=true&w=majority';
+
+const conn = mongoose.createConnection(mongoURI, {
+	useNewUrlParser: true,
+	useUnifiedTopology: true,
+});
+
+mongoose
+	.connect(mongoURI, {
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+	})
+	.then(() => {
+		console.log('connection successful...');
+	})
+	.catch((err) => {
+		console.log('connection failed.....');
+	});
+
+mongoose.connection.once('open', () => console.log('DB Connected'));
+
+var gfs;
+
+conn.once('open', () => {
+	console.log('DB Connected');
+
+	gfs = Grid(conn.db, mongoose.mongo);
+	gfs.collection('images');
+});
+
+app.use(function (req, res, next) {
+	//allow cross origin requests
+	res.setHeader(
+		'Access-Control-Allow-Methods',
+		'POST, PUT, OPTIONS, DELETE, GET'
+	);
+	res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+	res.header(
+		'Access-Control-Allow-Headers',
+		'Origin, X-Requested-With, Content-Type, Accept'
+	);
+	res.header('Access-Control-Allow-Credentials', true);
+	next();
+});
+
+const storage = new GridFsStorage({
+	url: mongoURI,
+	options: {
+		useUnifiedTopology: true,
+		useNewUrlParser: true,
+	},
+	file: (req, file) => {
+		return new Promise((resolve, reject) => {
+			const filename = `image-${Date.now()}${path.extname(
+				file.originalname
+			)}`;
+
+			const fileInfo = {
+				filename: filename,
+				bucketName: 'images',
+			};
+			console.log('######', fileInfo);
+			resolve(fileInfo);
+		});
+	},
+});
+
+const upload = multer({ storage: storage });
+
+//api routes
+app.get('/', (req, res) => res.status(200).send('hello world'));
+
+app.post('/upload/image', upload.single('file'), (req, res) => {
+	console.log('>>>>>', req.file);
+
+	res.status(201).send(req.file);
+});
+
+app.post('/upload/post', (req, res) => {
+	const dbPost = req.body;
+
+	console.log(dbPost);
+
+	mongoPosts.create(dbPost, (err, data) => {
+		if (err) {
+			res.status(500).send(err);
+		} else {
+			res.status(201).send(data);
+		}
+	});
+});
+
+app.get('/retrieve/image/single', (res, req) => {
+	gfs.files.findOne({ filename: req.query.name }, (err, file) => {
+		if (err) {
+			res.status(500).send(err);
+		} else {
+			if (!file || file.length === 0) {
+				res.status(404).json({ err: 'File not found' });
+			} else {
+				const readstream = gfs.createReadStream(file.filename);
+				readstream.pipe(res);
+			}
+		}
+	});
+});
+
+app.get('/retrieve/posts', (req, res) => {
+	mongoPosts.find((err, res) => {
+		if (err) {
+			res.status(500).send(err);
+		} else {
+			data.sort((b, a) => {
+				return a.timestamp - b.timestamp;
+			});
+			res.status(200).send(data);
+		}
+	});
+});
+
+// listen
+app.listen(port, () => console.log(`listening on localhost ${port}`));

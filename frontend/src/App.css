@@ -1,0 +1,14 @@
+.app {
+	background-color: #eff2f5;
+}
+
+.app__body {
+	display: flex;
+	background-color: #eff2f5;
+}
+
+#toast_container {
+	top: 30px !important;
+	right: 20px !important;
+	left: auto !important;
+}
